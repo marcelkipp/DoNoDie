@@ -28,6 +28,10 @@ public class PlayerFollow : MonoBehaviour
         _cameraOffset = transform.position - PlayerTransform.position;
     }
 
+    private void Update()
+    {
+    }
+
     // LateUpdate is called after update Method to make sure that the transform of the objects is completed
     void LateUpdate()
     {

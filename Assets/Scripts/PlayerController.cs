@@ -10,19 +10,22 @@ public class PlayerController : MonoBehaviour
     public float sprintVelocity = 10;
     public float turnSpeed = 5;
     public GameObject cam;
-    
+    public float mouseSensivity = 3f;
+    public float viewRange = 60f;
     
     Animator animator;
     PlayerControlls controls;
     Vector2 move;
-    Vector2 input;
     bool sprint;
     float angle;
+    Vector3 lastMouseInput;
 
     private float timeSinceNoInputForMovement = 0.0f;
-    private float timeForNoInputAnimation = 5.0f;
+    private float timeForNoInputAnimation = 15.0f;
     private float timeForNoInputAnimationOffset = 10.0f;
-    private float timeForNoInputAnimationDuration = 3.0f;
+
+    private float MouseX;
+    private float MouseY;
 
     Quaternion targetRotation;
 
@@ -39,18 +42,24 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
+        //Cursor ausblenden
+        //Cursor.visible = false;
+
         animator = GetComponent<Animator>();
+        lastMouseInput = Vector3.zero;
     }
+
 
     private void Update()
     {
-        Debug.Log(timeSinceNoInputForMovement);
 
+       // rotatePlayer();
+
+        rotatePlayerToMousePosition();
+
+        // Animation wenn kein Input nach bestimmter Zeit festgestellt wurde
         if (move.Equals(Vector2.zero))
         {
-
-            //Debug.Log(timeSinceNoInputForMovement);
-
             if ((timeSinceNoInputForMovement += Time.deltaTime) > timeForNoInputAnimation)
             {
                 timeForNoInputAnimation += timeForNoInputAnimationOffset;
@@ -59,15 +68,26 @@ public class PlayerController : MonoBehaviour
 
             animator.SetBool("walking", false);
             animator.SetBool("sprinting", false);
+            animator.SetBool("backwards", false); 
             return;
         }
 
         timeSinceNoInputForMovement = 0.0f;
 
-        AnimationHandler();
         CalculateDirection();
         Rotate();
         Move();
+
+        lastMouseInput = Input.mousePosition;
+    }
+
+
+    void rotatePlayer()
+    {
+        MouseX = Input.GetAxis("Mouse X");
+        MouseY = Input.GetAxis("Mouse Y");
+
+        transform.Rotate(0,MouseX * mouseSensivity, 0);
     }
 
 
@@ -86,19 +106,67 @@ public class PlayerController : MonoBehaviour
 
     void Move()
     {
+        //Debug.Log(move); 
+
         float moveVelocity;
 
-        if (sprint)
+        moveVelocity = velocity;
+
+        if (move.y > 0)
         {
-            moveVelocity = sprintVelocity;
-            animator.SetBool("sprinting", true);
-        } else
-        {
-            animator.SetBool("sprinting", false);
-            moveVelocity = velocity;
+            if (sprint)
+            {
+                moveVelocity = sprintVelocity;
+                animator.SetBool("sprinting", true);
+            }
+            else
+            {
+                animator.SetBool("sprinting", false);
+                moveVelocity = velocity;
+            }
+
+            animator.SetBool("walking", true);
+            transform.position += transform.forward * moveVelocity * Time.deltaTime;
         }
 
-        transform.position += transform.forward * moveVelocity * Time.deltaTime;
+
+        // LINKS
+        if (move.x < 0)
+        {
+            moveVelocity *= 0.5f;
+            transform.position += -transform.right * moveVelocity * Time.deltaTime;
+        }
+
+        // RECHTS
+        if (move.x > 0)
+        {
+            moveVelocity *= 0.5f;
+            transform.position += transform.right * moveVelocity * Time.deltaTime;
+        }
+
+        // ZURÜCK
+        if (move.y < 0)
+        {
+            animator.SetBool("backwards", true);
+            moveVelocity *= 0.5f;
+            transform.position += -transform.forward * moveVelocity * Time.deltaTime;
+        }
+
+    }
+
+    void rotatePlayerToMousePosition()
+    {
+        Ray cameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Plane groundPlane = new Plane(Vector3.up, new Vector3(0, transform.position.y, 0));
+        float rayLength;
+
+        if (groundPlane.Raycast(cameraRay, out rayLength))
+        {
+            Vector3 pointToLook = cameraRay.GetPoint(rayLength);
+            //Debug.DrawLine(cameraRay.origin, pointToLook, Color.blue);
+
+            transform.LookAt(new Vector3(pointToLook.x, transform.position.y, pointToLook.z));
+        }
     }
 
     void OnEnable()
@@ -115,6 +183,5 @@ public class PlayerController : MonoBehaviour
     {
         animator.SetBool("walking", true);
     }
-
 
 }

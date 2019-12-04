@@ -41,6 +41,14 @@ public class PlayerControlls : IInputActionCollection, IDisposable
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""Shoot1"",
+                    ""type"": ""Button"",
+                    ""id"": ""e406c665-b280-4f05-a653-a625639bbd75"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -122,6 +130,61 @@ public class PlayerControlls : IInputActionCollection, IDisposable
                     ""isPartOfComposite"": false
                 },
                 {
+                    ""name"": ""2D Vector"",
+                    ""id"": ""c095d94d-9d4f-40b9-b8cb-a381a3109456"",
+                    ""path"": ""2DVector"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RotateCamera"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""up"",
+                    ""id"": ""413f9813-a68f-446d-9033-e7ca3dd27a2a"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RotateCamera"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""8368b399-3ac3-466d-a81b-ebd6447f839e"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RotateCamera"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""9f222b6b-c02b-4416-a3d9-5ec476b9698c"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RotateCamera"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""right"",
+                    ""id"": ""528c8f87-4bbc-476c-acdd-4e6ba320ec03"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RotateCamera"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
                     ""name"": """",
                     ""id"": ""f8d79e9d-da1d-4ecd-abc7-56b160523862"",
                     ""path"": ""<Keyboard>/leftShift"",
@@ -142,6 +205,17 @@ public class PlayerControlls : IInputActionCollection, IDisposable
                     ""action"": ""Sprint"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b91f3541-f4e1-4882-83bd-9a1d393715be"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Shoot1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -153,6 +227,7 @@ public class PlayerControlls : IInputActionCollection, IDisposable
         m_Gameplay_Move = m_Gameplay.FindAction("Move", throwIfNotFound: true);
         m_Gameplay_RotateCamera = m_Gameplay.FindAction("RotateCamera", throwIfNotFound: true);
         m_Gameplay_Sprint = m_Gameplay.FindAction("Sprint", throwIfNotFound: true);
+        m_Gameplay_Shoot1 = m_Gameplay.FindAction("Shoot1", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -205,6 +280,7 @@ public class PlayerControlls : IInputActionCollection, IDisposable
     private readonly InputAction m_Gameplay_Move;
     private readonly InputAction m_Gameplay_RotateCamera;
     private readonly InputAction m_Gameplay_Sprint;
+    private readonly InputAction m_Gameplay_Shoot1;
     public struct GameplayActions
     {
         private PlayerControlls m_Wrapper;
@@ -212,6 +288,7 @@ public class PlayerControlls : IInputActionCollection, IDisposable
         public InputAction @Move => m_Wrapper.m_Gameplay_Move;
         public InputAction @RotateCamera => m_Wrapper.m_Gameplay_RotateCamera;
         public InputAction @Sprint => m_Wrapper.m_Gameplay_Sprint;
+        public InputAction @Shoot1 => m_Wrapper.m_Gameplay_Shoot1;
         public InputActionMap Get() { return m_Wrapper.m_Gameplay; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -230,6 +307,9 @@ public class PlayerControlls : IInputActionCollection, IDisposable
                 Sprint.started -= m_Wrapper.m_GameplayActionsCallbackInterface.OnSprint;
                 Sprint.performed -= m_Wrapper.m_GameplayActionsCallbackInterface.OnSprint;
                 Sprint.canceled -= m_Wrapper.m_GameplayActionsCallbackInterface.OnSprint;
+                Shoot1.started -= m_Wrapper.m_GameplayActionsCallbackInterface.OnShoot1;
+                Shoot1.performed -= m_Wrapper.m_GameplayActionsCallbackInterface.OnShoot1;
+                Shoot1.canceled -= m_Wrapper.m_GameplayActionsCallbackInterface.OnShoot1;
             }
             m_Wrapper.m_GameplayActionsCallbackInterface = instance;
             if (instance != null)
@@ -243,6 +323,9 @@ public class PlayerControlls : IInputActionCollection, IDisposable
                 Sprint.started += instance.OnSprint;
                 Sprint.performed += instance.OnSprint;
                 Sprint.canceled += instance.OnSprint;
+                Shoot1.started += instance.OnShoot1;
+                Shoot1.performed += instance.OnShoot1;
+                Shoot1.canceled += instance.OnShoot1;
             }
         }
     }
@@ -252,5 +335,6 @@ public class PlayerControlls : IInputActionCollection, IDisposable
         void OnMove(InputAction.CallbackContext context);
         void OnRotateCamera(InputAction.CallbackContext context);
         void OnSprint(InputAction.CallbackContext context);
+        void OnShoot1(InputAction.CallbackContext context);
     }
 }
